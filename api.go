@@ -1,7 +1,6 @@
 package gologger
 
 import (
-	"context"
 	"fmt"
 	"sync"
 )
@@ -12,6 +11,12 @@ var (
 		mu:      sync.RWMutex{},
 	}
 )
+
+func NewLogger() *Logger {
+	return &Logger{
+		mu: sync.RWMutex{},
+	}
+}
 
 func init() {
 	logger.AddDriver(NewStdout())
@@ -26,46 +31,26 @@ func SetLogger(l *Logger) {
 }
 
 func Debug(format string, logs ...any) {
-	Debugc(context.Background(), fmt.Sprintf(format, logs...))
-}
-
-func Debugc(ctx context.Context, format string, logs ...any) {
 	str := fmt.Sprintf(format, logs...)
-	logger.Log(ctx, LEVEL_DEBUG, str)
+	logger.Log(LEVEL_DEBUG, str)
 }
 
 func Info(format string, logs ...any) {
-	Infoc(context.Background(), format, logs...)
-}
-
-func Infoc(ctx context.Context, format string, logs ...any) {
 	str := fmt.Sprintf(format, logs...)
-	logger.Log(ctx, LEVEL_INFO, str)
+	logger.Log(LEVEL_INFO, str)
 }
 
 func Warning(format string, logs ...any) {
-	Warningc(context.Background(), format, logs...)
-}
-
-func Warningc(ctx context.Context, format string, logs ...any) {
 	str := fmt.Sprintf(format, logs...)
-	logger.Log(ctx, LEVEL_WARNING, str)
+	logger.Log(LEVEL_WARNING, str)
 }
 
 func Error(format string, logs ...any) {
-	Errorc(context.Background(), format, logs...)
-}
-
-func Errorc(ctx context.Context, format string, logs ...any) {
 	str := fmt.Sprintf(format, logs...)
-	logger.Log(ctx, LEVEL_ERROR, str)
+	logger.Log(LEVEL_ERROR, str)
 }
 
 func Fatal(format string, logs ...any) {
-	Fatalc(context.Background(), format, logs...)
-}
-
-func Fatalc(ctx context.Context, format string, logs ...any) {
 	str := fmt.Sprintf(format, logs...)
-	logger.Log(ctx, LEVEL_FATAL, str)
+	logger.Log(LEVEL_FATAL, str)
 }

@@ -1,7 +1,6 @@
 package gologger
 
 import (
-	"context"
 	"fmt"
 	"sync"
 )
@@ -29,9 +28,10 @@ func (l Level) GetName() string {
 }
 
 type Driver interface {
-	Log(context.Context, Level, string)
+	Log(Level, string)
 	SetFormat(string)
 	GetFormat() string
+	Close() error
 }
 
 type Logger struct {
@@ -39,13 +39,13 @@ type Logger struct {
 	mu      sync.RWMutex
 }
 
-func (l *Logger) Log(c context.Context, lv Level, a ...any) {
+func (l *Logger) Log(lv Level, a ...any) {
 	ps := map[string]any{"L": lv.GetName(), "M": fmt.Sprintf("%v ", a...)}
 	l.mu.RLock()
 	defer l.mu.RUnlock()
 
 	for d, f := range l.drivers {
-		d.Log(c, lv, f.Format(ps))
+		d.Log(lv, f.Format(ps))
 	}
 }
 

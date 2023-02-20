@@ -1,7 +1,6 @@
 package gologger
 
 import (
-	"context"
 	"io"
 	"os"
 )
@@ -20,7 +19,7 @@ type Stdout struct {
 	format string
 }
 
-func (s *Stdout) Log(c context.Context, lv Level, log string) {
+func (s *Stdout) Log(lv Level, log string) {
 	s.out.Write([]byte(log))
 }
 
@@ -30,4 +29,8 @@ func (s *Stdout) SetFormat(format string) {
 
 func (s *Stdout) GetFormat() string {
 	return s.format
+}
+
+func (s *Stdout) Close() error {
+	return nil
 }
