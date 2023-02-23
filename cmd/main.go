@@ -1,7 +1,7 @@
 package main
 
 import (
-	xlog "fbnoi/gologger"
+	xlog "fbnoi.com/gologger"
 )
 
 func main() {

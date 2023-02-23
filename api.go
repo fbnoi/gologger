@@ -30,27 +30,53 @@ func SetLogger(l *Logger) {
 	logger = l
 }
 
-func Debug(format string, logs ...any) {
-	str := fmt.Sprintf(format, logs...)
+func Debug(logs ...any) {
+	str := fmt.Sprint(logs...)
 	logger.Log(LEVEL_DEBUG, str)
 }
 
-func Info(format string, logs ...any) {
-	str := fmt.Sprintf(format, logs...)
+func Debugf(format string, logs ...any) {
+	Debug(fmt.Sprintf(format, logs...))
+}
+
+func Info(logs ...any) {
+	str := fmt.Sprint(logs...)
 	logger.Log(LEVEL_INFO, str)
 }
 
-func Warning(format string, logs ...any) {
-	str := fmt.Sprintf(format, logs...)
+func Infof(format string, logs ...any) {
+	Info(fmt.Sprintf(format, logs...))
+}
+
+func Warning(logs ...any) {
+	str := fmt.Sprint(logs...)
 	logger.Log(LEVEL_WARNING, str)
 }
 
-func Error(format string, logs ...any) {
-	str := fmt.Sprintf(format, logs...)
+func Warningf(format string, logs ...any) {
+	Warning(fmt.Sprintf(format, logs...))
+}
+
+func Error(logs ...any) {
+	str := fmt.Sprint(logs...)
 	logger.Log(LEVEL_ERROR, str)
 }
 
-func Fatal(format string, logs ...any) {
-	str := fmt.Sprintf(format, logs...)
+func Errorf(format string, logs ...any) {
+	Error(fmt.Sprintf(format, logs...))
+}
+
+func Fatal(logs ...any) {
+	str := fmt.Sprint(logs...)
 	logger.Log(LEVEL_FATAL, str)
+}
+
+func Fatalf(format string, logs ...any) {
+	Fatal(fmt.Sprintf(format, logs...))
+}
+
+func Close() {
+	for d := range logger.drivers {
+		d.Close()
+	}
 }

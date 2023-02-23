@@ -45,7 +45,7 @@ func (l *Logger) Log(lv Level, a ...any) {
 	defer l.mu.RUnlock()
 
 	for d, f := range l.drivers {
-		d.Log(lv, f.Format(ps))
+		d.Log(lv, fmt.Sprintln(f.Format(ps)))
 	}
 }
 

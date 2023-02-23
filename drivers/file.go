@@ -1,30 +1,52 @@
 package drivers
 
 import (
-	"fbnoi/gologger"
 	"sync"
+
+	"fbnoi.com/gologger"
 )
 
+func NewFileDriver(format string) *FileDriver {
+	return &FileDriver{
+		writers: make(map[gologger.Level]*FileWriter),
+		async:   false,
+		wg:      &sync.WaitGroup{},
+		format:  format,
+		mu:      &sync.RWMutex{},
+	}
+}
+
 type FileDriver struct {
-	writers []*FileWriter
+	writers map[gologger.Level]*FileWriter
 	async   bool
 	wg      *sync.WaitGroup
 	format  string
+	mu      *sync.RWMutex
+}
+
+func (fd *FileDriver) AddWriter(level gologger.Level, w *FileWriter) {
+	fd.mu.Lock()
+	defer fd.mu.Unlock()
+	fd.writers[level] = w
 }
 
 func (fd *FileDriver) Log(level gologger.Level, log string) {
 	if fd.async {
-		for _, w := range fd.writers {
-			fd.wg.Add(1)
-			go func(w *FileWriter) {
-				w.Write([]byte(log))
-				fd.wg.Done()
-			}(w)
-		}
+		fd.wg.Add(1)
+		go func() {
+			fd.mu.RLock()
+			defer fd.mu.RUnlock()
+			if writer, ok := fd.writers[level]; ok {
+				writer.Write([]byte(log))
+			}
+			fd.wg.Done()
+		}()
 		fd.wg.Wait()
 	} else {
-		for _, w := range fd.writers {
-			w.Write([]byte(log))
+		fd.mu.RLock()
+		defer fd.mu.RUnlock()
+		if writer, ok := fd.writers[level]; ok {
+			writer.Write([]byte(log))
 		}
 	}
 }
