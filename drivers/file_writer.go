@@ -62,12 +62,11 @@ func NewFileWriter(dir, fname string, fns ...Option) (*FileWriter, error) {
 	}
 	stdlog := log.New(os.Stderr, "flog ", log.LstdFlags)
 	fw := &FileWriter{
-		opt:     opt,
-		dir:     dir,
-		fname:   fname,
-		stdlog:  stdlog,
-		bufCh:   make(chan *bytes.Buffer, opt.ChanSize),
-		wFlagCh: make(chan int),
+		opt:    opt,
+		dir:    dir,
+		fname:  fname,
+		stdlog: stdlog,
+		bufCh:  make(chan *bytes.Buffer, opt.ChanSize),
 		pool: &sync.Pool{
 			New: func() any {
 				return &bytes.Buffer{}
@@ -160,15 +159,14 @@ type rotateSnapshot struct {
 }
 
 type FileWriter struct {
-	opt     option
-	dir     string
-	fname   string
-	stdlog  *log.Logger
-	bufCh   chan *bytes.Buffer
-	wFlagCh chan int
-	pool    *sync.Pool
-	closed  int32
-	wg      sync.WaitGroup
+	opt    option
+	dir    string
+	fname  string
+	stdlog *log.Logger
+	bufCh  chan *bytes.Buffer
+	pool   *sync.Pool
+	closed int32
+	wg     sync.WaitGroup
 
 	wf    *wrappedFile
 	files []*rotateSnapshot
@@ -186,6 +184,8 @@ func (fw *FileWriter) Write(bs []byte) (int, error) {
 		n       = cursor
 		wFlagCh = make(chan int)
 	)
+	defer close(wFlagCh)
+
 	go func() {
 		length := len(bs)
 		for cursor < length {
@@ -205,8 +205,6 @@ func (fw *FileWriter) Write(bs []byte) (int, error) {
 	if fw.opt.WriteTimeout == 0 {
 		select {
 		case <-wFlagCh:
-			close(wFlagCh)
-
 			return len(bs), nil
 		default:
 			return n, errors.New("channel is full, discard log")
@@ -218,8 +216,6 @@ func (fw *FileWriter) Write(bs []byte) (int, error) {
 	case <-timeout.C:
 		return n, errors.New("write timeout, discard log")
 	case <-wFlagCh:
-		close(wFlagCh)
-
 		return len(bs), nil
 	}
 }
@@ -228,6 +224,7 @@ func (fw *FileWriter) Close() error {
 	atomic.StoreInt32(&fw.closed, 1)
 	close(fw.bufCh)
 	fw.wg.Wait()
+
 	return nil
 }
 
